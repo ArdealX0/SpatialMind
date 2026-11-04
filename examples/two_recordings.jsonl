@@ -1,0 +1,3 @@
+{"video":"A","object_id":"bottle_01","t_ms":9000,"label":"blue bottle","zone":"shelf"}
+{"video":"B","object_id":"bottle_01","t_ms":3000,"label":"blue bottle","zone":"bench"}
+{"video":"B","object_id":"bottle_01","t_ms":1000,"label":"blue bottle","zone":"desk"}

@@ -14,4 +14,4 @@ python -m unittest discover -s tests -v
 
 The JSONL fixture is synthetic: object IDs, labels, zones and timestamps are supplied as input. The result describes the last recorded observation, not a prediction of the object's current position. No camera, learned detector or re-identification model is wired in yet.
 
-See [30-day roadmap](docs/ROADMAP.md), [daily engineering log](docs/DAILY_LOG.md), and [security checklist](SECURITY.md).
+See [30-day roadmap](docs/ROADMAP.md), [observation contract](docs/OBSERVATIONS.md), and [security checklist](SECURITY.md).
