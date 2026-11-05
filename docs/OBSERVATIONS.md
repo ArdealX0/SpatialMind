@@ -62,12 +62,26 @@ On a fresh database, stdout is:
 Input does not have to be ordered by timestamp. Importing the same fixture again
 returns `{"inserted": 0, "unchanged": 3}`.
 
-If an existing evidence reference has exactly the same label and zone, the record
-is unchanged. If either differs, import fails as a conflict; it does not overwrite
-the prior observation. This also applies to repeated references within one file.
+Replay uses the evidence reference `(video, object_id, t_ms)` as the record key:
+
+| Incoming observation | Result |
+| --- | --- |
+| Key absent from both stored records and earlier lines in this batch | Insert; increment `inserted` |
+| Same key, label and zone as a stored observation, including one inserted earlier in this batch | Leave unchanged; increment `unchanged` |
+| Same key but a changed label or zone, including a conflicting repeat in the same batch | Reject the import; roll back all new observations from this invocation |
+
+Counters describe processed record occurrences in a successful import, not the
+number of unique unchanged records. Three identical lines in a fresh database
+return `{"inserted": 1, "unchanged": 2}`; replaying those three lines returns
+`{"inserted": 0, "unchanged": 3}`.
+
+Retrying identical input is safe, but replay is not a correction mechanism:
+it never replaces an existing observation's label or zone. Corrections are not
+supported by the current CLI.
+
 A malformed or conflicting record rolls back every new observation from that
-invocation, preserving previously committed records. An attempted import can still
-create an empty database and schema.
+invocation, preserving previously committed records. Failed imports return no
+success counters. An attempted import can still create an empty database and schema.
 
 ## Scoped last-seen queries
 
