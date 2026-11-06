@@ -6,7 +6,7 @@ import sys
 from contextlib import closing
 from pathlib import Path
 
-from .store import connect, ingest, last_seen
+from .store import connect, history, ingest, last_seen
 
 
 def main(argv=None):
@@ -15,9 +15,13 @@ def main(argv=None):
     sub = parser.add_subparsers(dest="command", required=True)
     ingest_parser = sub.add_parser("ingest", help="atomically ingest JSONL observations")
     ingest_parser.add_argument("file", type=Path)
-    query = sub.add_parser("last-seen", help="retrieve an object's last observed position")
-    query.add_argument("object_id")
-    query.add_argument("--video", help="source recording ID")
+    for command, description in (
+        ("last-seen", "retrieve an object's last observed position"),
+        ("history", "retrieve an object's observations in timestamp order"),
+    ):
+        query = sub.add_parser(command, help=description)
+        query.add_argument("object_id")
+        query.add_argument("--video", help="source recording ID")
     args = parser.parse_args(argv)
     try:
         with closing(connect(args.db)) as db:
@@ -25,8 +29,9 @@ def main(argv=None):
                 with args.file.open("rb") as stream:
                     result = ingest(db, stream)
             else:
-                result = last_seen(db, args.object_id, args.video)
-                if result is None:
+                lookup = history if args.command == "history" else last_seen
+                result = lookup(db, args.object_id, args.video)
+                if not result:
                     print("no matching observation", file=sys.stderr)
                     return 1
     except (ValueError, OSError, sqlite3.Error) as exc:

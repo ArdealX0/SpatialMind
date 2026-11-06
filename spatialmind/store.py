@@ -75,8 +75,8 @@ def ingest(db, stream):
     return {"inserted": inserted, "unchanged": unchanged}
 
 
-def last_seen(db, object_id, video=None):
-    """Return the latest supported observation within one recording, or None."""
+def _resolve_video(db, object_id, video):
+    """Resolve an unambiguous recording without comparing recording-relative times."""
     if video is None:
         candidates = db.execute("""
             SELECT DISTINCT video FROM observations WHERE object_id=? LIMIT 2
@@ -86,8 +86,28 @@ def last_seen(db, object_id, video=None):
         if len(candidates) > 1:
             raise ValueError("object ID occurs in multiple recordings; specify --video")
         video = candidates[0]["video"]
+    return video
+
+
+def last_seen(db, object_id, video=None):
+    """Return the latest supported observation within one recording, or None."""
+    video = _resolve_video(db, object_id, video)
+    if video is None:
+        return None
     row = db.execute("""
         SELECT video, object_id, t_ms, label, zone FROM observations
         WHERE video=? AND object_id=? ORDER BY t_ms DESC LIMIT 1
     """, (video, object_id)).fetchone()
     return dict(row) if row is not None else None
+
+
+def history(db, object_id, video=None):
+    """Return all observations in ascending timestamp order within one recording."""
+    video = _resolve_video(db, object_id, video)
+    if video is None:
+        return []
+    rows = db.execute("""
+        SELECT video, object_id, t_ms, label, zone FROM observations
+        WHERE video=? AND object_id=? ORDER BY t_ms ASC
+    """, (video, object_id))
+    return [dict(row) for row in rows]

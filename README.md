@@ -9,6 +9,7 @@ From this directory, using Python 3.11 or newer, no dependencies or GPU required
 ```sh
 python -m spatialmind --db workbench.sqlite ingest examples/workbench.jsonl
 python -m spatialmind --db workbench.sqlite last-seen bottle_01
+python -m spatialmind --db workbench.sqlite history bottle_01 --video workbench_demo
 python -m unittest discover -s tests -v
 ```
 

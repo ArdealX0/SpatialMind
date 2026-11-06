@@ -1,7 +1,7 @@
 # Observation contract
 
-SpatialMind currently imports supplied observations and retrieves the last recorded
-observation of an object. It does not derive observations from video, infer physical
+SpatialMind currently imports supplied observations and retrieves an object's
+last recorded observation or chronological observation history. It does not derive observations from video, infer physical
 identity, or predict an object's current position. The included examples are synthetic.
 
 ## JSONL input
@@ -117,14 +117,42 @@ Its stderr message is
 `error: object ID occurs in multiple recordings; specify --video`.
 Matching is by object ID, not by label or natural-language description.
 
+## Scoped history queries
+
+`history` returns all observations for one object within one recording, in
+ascending `t_ms` order. It uses the same scope and ambiguity rules as
+`last-seen`: omit `--video` only when the object ID occurs in one recording.
+
+```sh
+python -m spatialmind --db two-recordings.sqlite history bottle_01 --video B
+```
+
+The output is a JSON array (formatted here for readability):
+
+```json
+[
+  {"label": "blue bottle", "object_id": "bottle_01", "t_ms": 1000, "video": "B", "zone": "desk"},
+  {"label": "blue bottle", "object_id": "bottle_01", "t_ms": 3000, "video": "B", "zone": "bench"}
+]
+```
+
+Each element contains the same five fields as a last-seen result. A one-observation
+history is still an array. No match exits 1 without JSON; an ambiguous unscoped
+query exits 2 without JSON. History does not infer continuous visibility or
+movement between observations.
+
+This local MVP loads the complete matching history into memory before producing
+JSON. It has no pagination or time filter and is intended for small histories;
+memory use grows with the number and size of matching observations.
+
 ## CLI results
 
 | Exit code | Meaning | Output |
 | --- | --- | --- |
-| 0 | Import or query succeeded | One JSON object on stdout |
+| 0 | Import or query succeeded | One JSON object for import/last-seen; a JSON array for history, on stdout |
 | 1 | No matching observation for the requested scope | `no matching observation` on stderr |
 | 2 | Invalid invocation, input, ambiguous scope, conflict, or handled file/database error | Diagnostic on stderr |
 
 Failed commands do not emit a successful-result JSON object. The required
 `--db PATH` option precedes the subcommand; `--video VIDEO` belongs to
-`last-seen`. Database parent directories must already exist.
+`last-seen` or `history`. Database parent directories must already exist.
