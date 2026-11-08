@@ -6,7 +6,7 @@ import sys
 from contextlib import closing
 from pathlib import Path
 
-from .store import connect, history, ingest, last_seen
+from .store import connect, history, ingest, last_seen, zone_changes
 
 
 def main(argv=None):
@@ -18,6 +18,7 @@ def main(argv=None):
     for command, description in (
         ("last-seen", "retrieve an object's last observed position"),
         ("history", "retrieve an object's observations in timestamp order"),
+        ("zone-changes", "retrieve observed zone differences for one object"),
     ):
         query = sub.add_parser(command, help=description)
         query.add_argument("object_id")
@@ -29,9 +30,13 @@ def main(argv=None):
                 with args.file.open("rb") as stream:
                     result = ingest(db, stream)
             else:
-                lookup = history if args.command == "history" else last_seen
+                lookup = {
+                    "history": history,
+                    "last-seen": last_seen,
+                    "zone-changes": zone_changes,
+                }[args.command]
                 result = lookup(db, args.object_id, args.video)
-                if not result:
+                if result is None or (args.command == "history" and not result):
                     print("no matching observation", file=sys.stderr)
                     return 1
     except (ValueError, OSError, sqlite3.Error) as exc:

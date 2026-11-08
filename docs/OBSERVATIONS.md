@@ -145,14 +145,65 @@ This local MVP loads the complete matching history into memory before producing
 JSON. It has no pagination or time filter and is intended for small histories;
 memory use grows with the number and size of matching observations.
 
+## Derived zone-change queries
+
+`zone-changes` compares consecutive observations in one object's sorted history.
+It returns an event when two adjacent observations have different known zone
+labels. It uses the same recording-scope resolution as `history` and `last-seen`.
+
+```sh
+python -m spatialmind --db two-recordings.sqlite zone-changes bottle_01 --video B
+```
+
+The example produces the following array (formatted for readability):
+
+```json
+[
+  {
+    "type": "ZONE_CHANGED",
+    "video": "B",
+    "object_id": "bottle_01",
+    "from_zone": "desk",
+    "to_zone": "bench",
+    "before_t_ms": 1000,
+    "after_t_ms": 3000
+  }
+]
+```
+
+The two timestamps refer to the observations supporting the difference; neither
+claims the exact instant of movement. Combine each timestamp with `video` and
+`object_id` to recover the supporting evidence reference. Repeated observations
+of the same zone do not produce events; the latest such observation supplies the
+before timestamp of a subsequent change. For example, A at 100 ms, A at 200 ms,
+and B at 300 ms produce one A-to-B event with times 200 and 300.
+
+The exact sentinel `unknown` breaks the comparison chain. A, unknown, B does
+not produce an A-to-B event; a following known observation can start a new pair.
+Other imported zone strings are compared exactly, without consulting a rectangle
+config. Unknown means unresolved location, not removal or invisibility.
+
+An existing object's history with no changes returns `[]` and exit 0, including
+a single observation or an all-unknown history. No observations in the requested
+scope returns exit 1 without JSON; ambiguous unscoped IDs return exit 2 without
+JSON.
+
+Events are derived on demand, not stored or assigned permanent event IDs. Replaying
+identical input preserves results; importing an earlier observation can change the
+adjacent pairs and derived events. This baseline has no debounce, minimum dwell
+time, or maximum-gap filter. Jitter can yield multiple events, and a long gap only
+supports different observed labels, not continuous visibility or a known movement
+path. Results load the full history and event list into memory; no pagination or
+time-range filtering is implemented.
+
 ## CLI results
 
 | Exit code | Meaning | Output |
 | --- | --- | --- |
-| 0 | Import or query succeeded | One JSON object for import/last-seen; a JSON array for history, on stdout |
+| 0 | Import or query succeeded | One JSON object for import/last-seen; a JSON array for history/zone-changes, on stdout |
 | 1 | No matching observation for the requested scope | `no matching observation` on stderr |
 | 2 | Invalid invocation, input, ambiguous scope, conflict, or handled file/database error | Diagnostic on stderr |
 
 Failed commands do not emit a successful-result JSON object. The required
 `--db PATH` option precedes the subcommand; `--video VIDEO` belongs to
-`last-seen` or `history`. Database parent directories must already exist.
+`last-seen`, `history` or `zone-changes`. Database parent directories must already exist.

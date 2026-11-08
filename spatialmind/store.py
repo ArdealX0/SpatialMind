@@ -111,3 +111,28 @@ def history(db, object_id, video=None):
         WHERE video=? AND object_id=? ORDER BY t_ms ASC
     """, (video, object_id))
     return [dict(row) for row in rows]
+
+
+def zone_changes(db, object_id, video=None):
+    """Derive adjacent known-zone differences, or None if no observations exist."""
+    observations = history(db, object_id, video)
+    if not observations:
+        return None
+    events = []
+    previous = None
+    for current in observations:
+        if current["zone"] == "unknown":
+            previous = None
+            continue
+        if previous is not None and current["zone"] != previous["zone"]:
+            events.append({
+                "type": "ZONE_CHANGED",
+                "video": current["video"],
+                "object_id": current["object_id"],
+                "from_zone": previous["zone"],
+                "to_zone": current["zone"],
+                "before_t_ms": previous["t_ms"],
+                "after_t_ms": current["t_ms"],
+            })
+        previous = current
+    return events
