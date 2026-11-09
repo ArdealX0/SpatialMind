@@ -113,26 +113,57 @@ def history(db, object_id, video=None):
     return [dict(row) for row in rows]
 
 
-def zone_changes(db, object_id, video=None):
-    """Derive adjacent known-zone differences, or None if no observations exist."""
+def validate_event_options(confirm_observations, max_gap_ms):
+    """Reject invalid debounce settings before loading observations."""
+    for name, value in (
+        ("confirm_observations", confirm_observations),
+        ("max_gap_ms", max_gap_ms),
+    ):
+        if type(value) is not int or not 1 <= value < 2**63:
+            raise ValueError(f"{name} must be a positive 64-bit integer")
+
+
+def zone_changes(db, object_id, video=None, *, confirm_observations=2, max_gap_ms=5000):
+    """Derive confirmed zone differences; unknown locations and long gaps reset."""
+    validate_event_options(confirm_observations, max_gap_ms)
     observations = history(db, object_id, video)
     if not observations:
         return None
     events = []
-    previous = None
+    baseline = candidate = None
+    candidate_count = 0
+    previous_time = None
     for current in observations:
+        if previous_time is not None and current["t_ms"] - previous_time > max_gap_ms:
+            baseline = candidate = None
+            candidate_count = 0
+        previous_time = current["t_ms"]
         if current["zone"] == "unknown":
-            previous = None
+            baseline = candidate = None
+            candidate_count = 0
             continue
-        if previous is not None and current["zone"] != previous["zone"]:
+        if baseline is None or current["zone"] == baseline["zone"]:
+            baseline = current
+            candidate = None
+            candidate_count = 0
+            continue
+        if candidate is None or candidate["zone"] != current["zone"]:
+            candidate = current
+            candidate_count = 1
+        else:
+            candidate_count += 1
+        if candidate_count >= confirm_observations:
             events.append({
                 "type": "ZONE_CHANGED",
                 "video": current["video"],
                 "object_id": current["object_id"],
-                "from_zone": previous["zone"],
+                "from_zone": baseline["zone"],
                 "to_zone": current["zone"],
-                "before_t_ms": previous["t_ms"],
-                "after_t_ms": current["t_ms"],
+                "before_t_ms": baseline["t_ms"],
+                "after_t_ms": candidate["t_ms"],
+                "confirmed_t_ms": current["t_ms"],
             })
-        previous = current
+            baseline = current
+            candidate = None
+            candidate_count = 0
     return events

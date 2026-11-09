@@ -33,7 +33,7 @@ class ZoneChangesCLITests(unittest.TestCase):
     def event(before, after, from_zone, to_zone, video="bench", object_id="bottle"):
         return dict(type="ZONE_CHANGED", video=video, object_id=object_id,
                     from_zone=from_zone, to_zone=to_zone,
-                    before_t_ms=before, after_t_ms=after)
+                    before_t_ms=before, after_t_ms=after, confirmed_t_ms=after)
 
     def ingest(self, *rows):
         path = self.work / "observations.jsonl"
@@ -42,7 +42,8 @@ class ZoneChangesCLITests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
 
     def assert_events(self, expected, *args):
-        result = self.cli("zone-changes", *args)
+        result = self.cli("zone-changes", *args, "--confirm-observations", "1",
+                          "--max-gap-ms", "10000")
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(json.loads(result.stdout), expected)
 
@@ -102,7 +103,8 @@ class ZoneChangesCLITests(unittest.TestCase):
         for args in (("missing",), ("missing", "--video", "bench"),
                      ("bottle", "--video", "missing"), ("bottle", "--video", "other")):
             with self.subTest(args=args):
-                result = self.cli("zone-changes", *args)
+                result = self.cli("zone-changes", *args,
+                          "--confirm-observations", "1", "--max-gap-ms", "10000")
                 self.assertEqual(result.returncode, 1, result.stderr)
                 self.assertEqual(result.stdout.strip(), "")
                 self.assertTrue(result.stderr.strip())

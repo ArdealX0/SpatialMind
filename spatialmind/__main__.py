@@ -6,7 +6,9 @@ import sys
 from contextlib import closing
 from pathlib import Path
 
-from .store import connect, history, ingest, last_seen, zone_changes
+from .store import (
+    connect, history, ingest, last_seen, validate_event_options, zone_changes,
+)
 
 
 def main(argv=None):
@@ -23,8 +25,18 @@ def main(argv=None):
         query = sub.add_parser(command, help=description)
         query.add_argument("object_id")
         query.add_argument("--video", help="source recording ID")
+        if command == "zone-changes":
+            query.add_argument("--confirm-observations", type=int, default=2,
+                               help="consecutive target observations required (default: 2)")
+            query.add_argument("--max-gap-ms", type=int, default=5000,
+                               help="maximum adjacent observation gap in ms (default: 5000)")
     args = parser.parse_args(argv)
     try:
+        event_options = {}
+        if args.command == "zone-changes":
+            validate_event_options(args.confirm_observations, args.max_gap_ms)
+            event_options = dict(confirm_observations=args.confirm_observations,
+                                 max_gap_ms=args.max_gap_ms)
         with closing(connect(args.db)) as db:
             if args.command == "ingest":
                 with args.file.open("rb") as stream:
@@ -35,7 +47,7 @@ def main(argv=None):
                     "last-seen": last_seen,
                     "zone-changes": zone_changes,
                 }[args.command]
-                result = lookup(db, args.object_id, args.video)
+                result = lookup(db, args.object_id, args.video, **event_options)
                 if result is None or (args.command == "history" and not result):
                     print("no matching observation", file=sys.stderr)
                     return 1

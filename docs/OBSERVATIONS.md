@@ -147,15 +147,23 @@ memory use grows with the number and size of matching observations.
 
 ## Derived zone-change queries
 
-`zone-changes` compares consecutive observations in one object's sorted history.
-It returns an event when two adjacent observations have different known zone
-labels. It uses the same recording-scope resolution as `history` and `last-seen`.
+`zone-changes` uses a known-zone baseline and requires consecutive observations
+of a different target zone before emitting an event. It uses the same recording
+scope as `history` and `last-seen`.
 
 ```sh
 python -m spatialmind --db two-recordings.sqlite zone-changes bottle_01 --video B
 ```
 
-The example produces the following array (formatted for readability):
+Defaults are `--confirm-observations 2` and `--max-gap-ms 5000`. The sample
+recording B has only one desk and one bench observation, so this default query
+returns `[]`: the target is not yet confirmed. To request immediate confirmation:
+
+```sh
+python -m spatialmind --db two-recordings.sqlite zone-changes bottle_01 --video B --confirm-observations 1
+```
+
+This produces the following array (formatted for readability):
 
 ```json
 [
@@ -166,35 +174,68 @@ The example produces the following array (formatted for readability):
     "from_zone": "desk",
     "to_zone": "bench",
     "before_t_ms": 1000,
-    "after_t_ms": 3000
+    "after_t_ms": 3000,
+    "confirmed_t_ms": 3000
   }
 ]
 ```
 
-The two timestamps refer to the observations supporting the difference; neither
-claims the exact instant of movement. Combine each timestamp with `video` and
-`object_id` to recover the supporting evidence reference. Repeated observations
-of the same zone do not produce events; the latest such observation supplies the
-before timestamp of a subsequent change. For example, A at 100 ms, A at 200 ms,
-and B at 300 ms produce one A-to-B event with times 200 and 300.
+Both options must be integers from 1 through 9,223,372,036,854,775,807. Invalid
+options exit 2 without JSON, before opening the database. The Python API accepts
+the same options as keyword-only `confirm_observations` and `max_gap_ms`;
+it rejects booleans and non-integer values.
 
-The exact sentinel `unknown` breaks the comparison chain. A, unknown, B does
-not produce an A-to-B event; a following known observation can start a new pair.
+### Confirmation rules
+
+- The first known observation establishes a baseline without an event.
+- A different known zone starts a candidate. Only consecutive observations of
+  that same target count toward confirmation.
+- Returning to the baseline cancels the candidate and updates the latest baseline
+  timestamp. A third zone replaces the candidate and restarts its count.
+- When the count reaches the configured threshold, emit one event and use the
+  confirming observation as the new baseline. Repeated sightings in that baseline
+  zone do not emit more events.
+- The exact sentinel `unknown` clears both baseline and candidate. The next
+  known observation establishes a new baseline without bridging the unknown.
+- A gap **greater than** `max_gap_ms` between adjacent observations also clears
+  baseline and candidate. Equality is allowed. The current known observation
+  becomes a fresh baseline, so no event bridges the long gap.
+
+For example, with default settings A at 0 ms, B at 5,000 ms, and B at 10,000 ms
+confirm one A-to-B event: each adjacent gap is at most 5,000 ms. This setting is
+not a maximum total transition duration. A at 0 ms followed by B at 60,000 ms
+and B at 61,000 ms produces no event: the minute-long gap resets the baseline.
+
+A, B, A, B, A produces no event with the default threshold. Two consecutive B
+observations after the latest A confirm one transition. This is an
+observation-count filter, not a minimum dwell-time rule; its behavior depends on
+sampling cadence. It suppresses brief jitter but does not prove physical movement.
+
+### Event evidence and limits
+
+`before_t_ms` is the latest baseline-zone sighting before the confirmed candidate
+run. `after_t_ms` is the **first** sighting in that candidate run.
+`confirmed_t_ms` is its confirming sighting. For A at 100 ms, A at 200 ms,
+B at 300 ms, and B at 400 ms, the default event times are 200, 300, and 400.
+Combine each timestamp with `video` and `object_id` to recover its stored
+evidence reference. None of these timestamps claims the exact movement instant.
+
 Other imported zone strings are compared exactly, without consulting a rectangle
-config. Unknown means unresolved location, not removal or invisibility.
+config. Unknown means unresolved location, not removal or invisibility. A reset
+suppresses unsupported transitions; it does not itself emit an uncertainty or
+visibility event.
 
-An existing object's history with no changes returns `[]` and exit 0, including
-a single observation or an all-unknown history. No observations in the requested
-scope returns exit 1 without JSON; ambiguous unscoped IDs return exit 2 without
-JSON.
+An existing object's history with no confirmed changes returns `[]` and exit 0,
+including a single observation or an all-unknown history. No observations in the
+requested scope returns exit 1 without JSON; ambiguous unscoped IDs return exit 2
+without JSON.
 
-Events are derived on demand, not stored or assigned permanent event IDs. Replaying
-identical input preserves results; importing an earlier observation can change the
-adjacent pairs and derived events. This baseline has no debounce, minimum dwell
-time, or maximum-gap filter. Jitter can yield multiple events, and a long gap only
-supports different observed labels, not continuous visibility or a known movement
-path. Results load the full history and event list into memory; no pagination or
-time-range filtering is implemented.
+Events are derived on demand, not stored or assigned permanent IDs. Replaying
+identical input with identical options preserves results. Importing earlier
+observations or changing query options can change derived events. These options
+are not persisted in the database. No continuous visibility or movement path is
+inferred between sightings. Queries load the complete history and event list into
+memory; there is no pagination or time-range filter.
 
 ## CLI results
 
