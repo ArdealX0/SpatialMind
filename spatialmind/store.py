@@ -123,9 +123,20 @@ def validate_event_options(confirm_observations, max_gap_ms):
             raise ValueError(f"{name} must be a positive 64-bit integer")
 
 
-def zone_changes(db, object_id, video=None, *, confirm_observations=2, max_gap_ms=5000):
+def validate_event_interval(start_ms, end_ms):
+    """Validate optional inclusive bounds on an event's confirmation timestamp."""
+    for name, value in (("start_ms", start_ms), ("end_ms", end_ms)):
+        if value is not None and (type(value) is not int or not 0 <= value < 2**63):
+            raise ValueError(f"{name} must be a nonnegative 64-bit integer")
+    if start_ms is not None and end_ms is not None and start_ms > end_ms:
+        raise ValueError("start_ms must be less than or equal to end_ms")
+
+
+def zone_changes(db, object_id, video=None, *, confirm_observations=2, max_gap_ms=5000,
+                 start_ms=None, end_ms=None):
     """Derive confirmed zone differences; unknown locations and long gaps reset."""
     validate_event_options(confirm_observations, max_gap_ms)
+    validate_event_interval(start_ms, end_ms)
     observations = history(db, object_id, video)
     if not observations:
         return None
@@ -166,4 +177,8 @@ def zone_changes(db, object_id, video=None, *, confirm_observations=2, max_gap_m
             baseline = current
             candidate = None
             candidate_count = 0
-    return events
+    return [
+        event for event in events
+        if (start_ms is None or event["confirmed_t_ms"] >= start_ms)
+        and (end_ms is None or event["confirmed_t_ms"] <= end_ms)
+    ]

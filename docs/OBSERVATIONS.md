@@ -235,7 +235,41 @@ identical input with identical options preserves results. Importing earlier
 observations or changing query options can change derived events. These options
 are not persisted in the database. No continuous visibility or movement path is
 inferred between sightings. Queries load the complete history and event list into
-memory; there is no pagination or time-range filter.
+memory; there is no pagination. Interval filtering does not reduce history loading.
+
+### Filtering by confirmation time
+
+Use `--start-ms` and/or `--end-ms` to select events by their
+`confirmed_t_ms`, in milliseconds relative to the selected recording.
+Both endpoints are inclusive; omitting a bound leaves that side unbounded.
+
+```sh
+python -m spatialmind --db two-recordings.sqlite zone-changes bottle_01 --video B --confirm-observations 1 --start-ms 3000 --end-ms 3000
+```
+
+This single-instant interval returns the sample event confirmed at 3,000 ms.
+A bound of 3,001 ms on the start would exclude it. Equal endpoints are valid;
+an empty selection returns `[]` with exit 0 when the object's history exists.
+This differs from an absent object/recording (exit 1) or ambiguous unscoped object
+ID (exit 2), even if the requested interval would contain no events.
+
+Bounds must be integers from 0 through 9,223,372,036,854,775,807, and start must
+not exceed end. Invalid bounds exit 2 with no JSON before opening the database.
+The Python API accepts keyword-only `start_ms=None` and `end_ms=None`,
+validates the same limits, and rejects booleans and non-integers.
+
+Debounce runs over the **complete history before filtering**. For A at 100 ms,
+B at 200 ms and B at 300 ms with default confirmation settings, interval
+[300, 300] includes the event with evidence times 100, 200 and 300. Those
+observations are not clipped or rewritten to the query interval. Interval
+[200, 200] excludes that event: a first target sighting is not yet confirmation.
+Likewise, events with evidence overlapping a window but confirmed outside it
+are excluded. This query answers when zone changes became supported, not when
+physical movement definitely occurred.
+
+Omitting both bounds preserves the unfiltered result. Bounds do not change
+recording-scope resolution, debounce settings, event fields, or stored data;
+they are query options and are not persisted.
 
 ## CLI results
 

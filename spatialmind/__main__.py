@@ -7,7 +7,8 @@ from contextlib import closing
 from pathlib import Path
 
 from .store import (
-    connect, history, ingest, last_seen, validate_event_options, zone_changes,
+    connect, history, ingest, last_seen, validate_event_interval, validate_event_options,
+    zone_changes,
 )
 
 
@@ -30,13 +31,19 @@ def main(argv=None):
                                help="consecutive target observations required (default: 2)")
             query.add_argument("--max-gap-ms", type=int, default=5000,
                                help="maximum adjacent observation gap in ms (default: 5000)")
+            query.add_argument("--start-ms", type=int,
+                               help="inclusive minimum confirmation time in video milliseconds")
+            query.add_argument("--end-ms", type=int,
+                               help="inclusive maximum confirmation time in video milliseconds")
     args = parser.parse_args(argv)
     try:
         event_options = {}
         if args.command == "zone-changes":
             validate_event_options(args.confirm_observations, args.max_gap_ms)
+            validate_event_interval(args.start_ms, args.end_ms)
             event_options = dict(confirm_observations=args.confirm_observations,
-                                 max_gap_ms=args.max_gap_ms)
+                                 max_gap_ms=args.max_gap_ms,
+                                 start_ms=args.start_ms, end_ms=args.end_ms)
         with closing(connect(args.db)) as db:
             if args.command == "ingest":
                 with args.file.open("rb") as stream:
