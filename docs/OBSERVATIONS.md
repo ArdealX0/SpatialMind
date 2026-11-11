@@ -6,7 +6,8 @@ identity, or predict an object's current position. The included examples are syn
 
 ## JSONL input
 
-Each nonblank line is a UTF-8 JSON object containing exactly these five fields:
+Each nonblank line is a UTF-8 JSON object containing these five required fields
+and, optionally, `tracklet_id`. No other fields are accepted:
 
 | Field | Type | Meaning |
 | --- | --- | --- |
@@ -15,6 +16,7 @@ Each nonblank line is a UTF-8 JSON object containing exactly these five fields:
 | `t_ms` | Integer | Milliseconds from the start of the source recording |
 | `label` | String | Supplied human-readable object description |
 | `zone` | String | Supplied location or region label |
+| `tracklet_id` | String, optional | Original tracker-segment ID scoped to the recording |
 
 Every string must contain non-whitespace text, contain only printable characters,
 and be at most 512 characters long. Strings are stored unchanged, compared exactly,
@@ -26,7 +28,7 @@ Booleans, floating-point numbers, numeric strings and negative values are reject
 It is not a Unix timestamp or wall-clock time. Times from different recordings
 cannot establish which recording happened later.
 
-Extra fields, missing fields, duplicate JSON keys and non-object JSON values are
+Extra fields, missing required fields, duplicate JSON keys and non-object JSON values are
 rejected. A physical line may contain at most 16,384 bytes, including its line
 ending when present. Blank lines within that limit are ignored. The final line
 does not require a newline. Empty input succeeds with zero inserted records.
@@ -44,6 +46,56 @@ The reference identifies an imported database record. It is **not** a playable
 media link: the current implementation does not resolve `video` to a file or
 URL, verify a recording exists, validate its duration, or attach a frame or mask.
 A later video adapter must provide that grounding.
+
+### Tracklets and session objects
+
+`object_id` identifies a supplied persistent object within one recording
+(session). The optional `tracklet_id` preserves an original tracker-segment ID;
+multiple tracklets may refer to the same session object. Associations are supplied
+by the caller, not inferred from visual similarity or time gaps.
+
+For example, save the following as a local JSONL file and import it with the
+existing `ingest` command:
+
+```jsonl
+{"video":"session-A","object_id":"bottle_01","tracklet_id":"track_7","t_ms":1000,"label":"blue bottle","zone":"desk"}
+{"video":"session-A","object_id":"bottle_01","tracklet_id":"track_19","t_ms":3000,"label":"blue bottle","zone":"shelf"}
+```
+
+`history bottle_01 --video session-A` returns both rows in time order with
+their original `tracklet_id` values. `last-seen` returns the second row with
+`track_19`. A tracklet ID is not an alias accepted in place of an object ID.
+
+A tracklet maps to exactly one object within a recording. Reusing `track_7`
+for a different object in session-A rejects the entire import, even at another
+timestamp. The same tracklet string in session-B is independently scoped.
+Changing labels or using multiple tracklets does not automatically merge objects.
+No tracklet reassignment, identity correction, continuity validation, overlap
+detection or learned re-identification is implemented.
+
+`tracklet_id` follows the same string limits as other IDs. If included it must
+be a valid string; explicit null, booleans, numbers and empty strings are invalid.
+If omitted, no tracklet is invented and the observation retains the legacy
+five-field output shape. A history can contain both legacy and tracked rows.
+
+The unique observation key remains `(video, object_id, t_ms)`. At that same key,
+a different tracklet is a conflict, even if label and zone match. Replaying a
+legacy observation with a supplied tracklet, or replaying a tracked observation
+without its tracklet, also conflicts: import never silently adds or erases
+provenance. Different tracklets cannot create simultaneous observations for the
+same object at the same timestamp.
+
+Mappings and observations are committed atomically in each import. Failure rolls
+back newly inserted mappings as well as observations, preserving prior data.
+Opening an older database adds a nullable observation column and a mapping table;
+existing observations remain unchanged and get no fabricated tracklet links.
+Schema creation/migration may remain after a failed import.
+
+Zone-change events keep their existing fields and operate on the session object's
+history across supplied tracklets, subject to the normal unknown/gap/debounce
+rules. Event evidence references still identify the source observations; look up
+those rows to recover their original tracklet IDs. A change of tracklet alone
+does not create an event or imply disappearance.
 
 ## Import and conflict behavior
 
@@ -67,8 +119,8 @@ Replay uses the evidence reference `(video, object_id, t_ms)` as the record key:
 | Incoming observation | Result |
 | --- | --- |
 | Key absent from both stored records and earlier lines in this batch | Insert; increment `inserted` |
-| Same key, label and zone as a stored observation, including one inserted earlier in this batch | Leave unchanged; increment `unchanged` |
-| Same key but a changed label or zone, including a conflicting repeat in the same batch | Reject the import; roll back all new observations from this invocation |
+| Same key, label, zone and tracklet assignment as a stored observation, including one inserted earlier in this batch | Leave unchanged; increment `unchanged` |
+| Same key but a changed label, zone or tracklet assignment, including a conflicting repeat in the same batch | Reject the import; roll back all new observations from this invocation |
 
 Counters describe processed record occurrences in a successful import, not the
 number of unique unchanged records. Three identical lines in a fresh database
@@ -76,7 +128,7 @@ return `{"inserted": 1, "unchanged": 2}`; replaying those three lines returns
 `{"inserted": 0, "unchanged": 3}`.
 
 Retrying identical input is safe, but replay is not a correction mechanism:
-it never replaces an existing observation's label or zone. Corrections are not
+it never replaces an existing observation's label, zone or tracklet assignment. Corrections are not
 supported by the current CLI.
 
 A malformed or conflicting record rolls back every new observation from that
@@ -136,7 +188,8 @@ The output is a JSON array (formatted here for readability):
 ]
 ```
 
-Each element contains the same five fields as a last-seen result. A one-observation
+Each element contains the same five required fields as a last-seen result, plus
+`tracklet_id` only when supplied for that observation. A one-observation
 history is still an array. No match exits 1 without JSON; an ambiguous unscoped
 query exits 2 without JSON. History does not infer continuous visibility or
 movement between observations.

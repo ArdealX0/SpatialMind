@@ -13,8 +13,17 @@ def connect(path):
         CREATE TABLE IF NOT EXISTS observations (
             video TEXT NOT NULL, object_id TEXT NOT NULL,
             t_ms INTEGER NOT NULL CHECK(t_ms >= 0),
-            label TEXT NOT NULL, zone TEXT NOT NULL,
+            label TEXT NOT NULL, zone TEXT NOT NULL, tracklet_id TEXT,
             PRIMARY KEY (video, object_id, t_ms)
+        ) WITHOUT ROWID
+    """)
+    columns = {row["name"] for row in db.execute("PRAGMA table_info(observations)")}
+    if "tracklet_id" not in columns:
+        db.execute("ALTER TABLE observations ADD COLUMN tracklet_id TEXT")
+    db.execute("""
+        CREATE TABLE IF NOT EXISTS tracklet_links (
+            video TEXT NOT NULL, tracklet_id TEXT NOT NULL, object_id TEXT NOT NULL,
+            PRIMARY KEY (video, tracklet_id)
         ) WITHOUT ROWID
     """)
     return db
@@ -31,9 +40,12 @@ def _unique_keys(pairs):
 
 def _parse(line):
     row = json.loads(line.decode("utf-8"), object_pairs_hook=_unique_keys)
-    if not isinstance(row, dict) or set(row) != set(FIELDS):
-        raise ValueError("expected exactly video, object_id, t_ms, label and zone")
-    for key in ("video", "object_id", "label", "zone"):
+    if not isinstance(row, dict) or set(row) not in (set(FIELDS), set(FIELDS) | {"tracklet_id"}):
+        raise ValueError("expected video, object_id, t_ms, label, zone and optional tracklet_id")
+    text_fields = ("video", "object_id", "label", "zone")
+    if "tracklet_id" in row:
+        text_fields += ("tracklet_id",)
+    for key in text_fields:
         value = row[key]
         if not isinstance(value, str) or not value.strip() or len(value) > 512:
             raise ValueError(f"{key} must be nonempty text of at most 512 characters")
@@ -41,7 +53,7 @@ def _parse(line):
             raise ValueError(f"{key} contains invalid characters")
     if type(row["t_ms"]) is not int or not 0 <= row["t_ms"] < 2**63:
         raise ValueError("t_ms must be a nonnegative 64-bit integer")
-    return tuple(row[key] for key in FIELDS)
+    return tuple(row[key] for key in FIELDS) + (row.get("tracklet_id"),)
 
 
 def ingest(db, stream):
@@ -58,15 +70,25 @@ def ingest(db, stream):
                 values = _parse(line)
             except (ValueError, RecursionError) as exc:
                 raise ValueError(f"line {line_no}: {exc}") from exc
+            if values[5] is not None:
+                db.execute("""
+                    INSERT INTO tracklet_links (video, tracklet_id, object_id)
+                    VALUES (?, ?, ?) ON CONFLICT(video, tracklet_id) DO NOTHING
+                """, (values[0], values[5], values[1]))
+                linked = db.execute("""
+                    SELECT object_id FROM tracklet_links WHERE video=? AND tracklet_id=?
+                """, (values[0], values[5])).fetchone()
+                if linked["object_id"] != values[1]:
+                    raise ValueError(f"line {line_no}: tracklet already belongs to another object")
             cursor = db.execute("""
-                INSERT INTO observations (video, object_id, t_ms, label, zone)
-                VALUES (?, ?, ?, ?, ?) ON CONFLICT(video, object_id, t_ms) DO NOTHING
+                INSERT INTO observations (video, object_id, t_ms, label, zone, tracklet_id)
+                VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT(video, object_id, t_ms) DO NOTHING
             """, values)
             if cursor.rowcount:
                 inserted += 1
             else:
                 existing = db.execute("""
-                    SELECT label, zone FROM observations
+                    SELECT label, zone, tracklet_id FROM observations
                     WHERE video=? AND object_id=? AND t_ms=?
                 """, values[:3]).fetchone()
                 if tuple(existing) != values[3:]:
@@ -89,16 +111,23 @@ def _resolve_video(db, object_id, video):
     return video
 
 
+def _observation_result(row):
+    result = dict(row)
+    if result["tracklet_id"] is None:
+        del result["tracklet_id"]
+    return result
+
+
 def last_seen(db, object_id, video=None):
     """Return the latest supported observation within one recording, or None."""
     video = _resolve_video(db, object_id, video)
     if video is None:
         return None
     row = db.execute("""
-        SELECT video, object_id, t_ms, label, zone FROM observations
+        SELECT video, object_id, t_ms, label, zone, tracklet_id FROM observations
         WHERE video=? AND object_id=? ORDER BY t_ms DESC LIMIT 1
     """, (video, object_id)).fetchone()
-    return dict(row) if row is not None else None
+    return _observation_result(row) if row is not None else None
 
 
 def history(db, object_id, video=None):
@@ -107,10 +136,10 @@ def history(db, object_id, video=None):
     if video is None:
         return []
     rows = db.execute("""
-        SELECT video, object_id, t_ms, label, zone FROM observations
+        SELECT video, object_id, t_ms, label, zone, tracklet_id FROM observations
         WHERE video=? AND object_id=? ORDER BY t_ms ASC
     """, (video, object_id))
-    return [dict(row) for row in rows]
+    return [_observation_result(row) for row in rows]
 
 
 def validate_event_options(confirm_observations, max_gap_ms):
