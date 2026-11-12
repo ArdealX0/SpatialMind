@@ -18,3 +18,5 @@ The JSONL fixture is synthetic: object IDs, labels, zones and timestamps are sup
 For assigning supplied normalized image points to named regions, see [zone configuration](docs/ZONES.md).
 
 See [30-day roadmap](docs/ROADMAP.md), [observation contract](docs/OBSERVATIONS.md), and [security checklist](SECURITY.md).
+
+For reproducible uncertainty cases, see [synthetic occlusion and look-alike scenarios](docs/SCENARIOS.md).

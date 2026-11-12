@@ -1,0 +1,6 @@
+{"video":"lookalike_demo","object_id":"bottle_left","tracklet_id":"track_left","t_ms":0,"label":"blue bottle","zone":"desk-left"}
+{"video":"lookalike_demo","object_id":"bottle_right","tracklet_id":"track_right","t_ms":0,"label":"blue bottle","zone":"desk-right"}
+{"video":"lookalike_demo","object_id":"bottle_left","tracklet_id":"track_left","t_ms":1000,"label":"blue bottle","zone":"desk-left"}
+{"video":"lookalike_demo","object_id":"bottle_right","tracklet_id":"track_right","t_ms":1000,"label":"blue bottle","zone":"desk-right"}
+{"video":"lookalike_demo","object_id":"unresolved_01","tracklet_id":"track_reappeared","t_ms":64000,"label":"blue bottle","zone":"center"}
+{"video":"lookalike_demo","object_id":"unresolved_01","tracklet_id":"track_reappeared","t_ms":65000,"label":"blue bottle","zone":"center"}

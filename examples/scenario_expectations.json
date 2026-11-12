@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "provenance": "human-authored synthetic acceptance expectations; not model output",
+  "scenarios": [
+    {
+      "id": "occlusion",
+      "fixture": "synthetic_occlusion.jsonl",
+      "video": "occlusion_demo",
+      "object_id": "bottle_01",
+      "identity_status": "caller-supplied",
+      "expected_history_t_ms": [0, 1000, 2000, 3000, 4000, 64000, 65000],
+      "expected_tracklet_ids": ["track_before", "track_before", "track_before", "track_after_short", "track_after_short", "track_after_long", "track_after_long"],
+      "expected_last_seen": {"video": "occlusion_demo", "object_id": "bottle_01", "tracklet_id": "track_after_long", "t_ms": 65000, "label": "blue bottle", "zone": "drawer"},
+      "expected_zone_changes": []
+    },
+    {
+      "id": "lookalikes",
+      "fixture": "synthetic_lookalikes.jsonl",
+      "video": "lookalike_demo",
+      "identity_status": "ambiguous",
+      "candidate_object_ids": ["bottle_left", "bottle_right"],
+      "unresolved_object_id": "unresolved_01",
+      "unresolved_tracklet_id": "track_reappeared",
+      "expected_candidate_last_seen_t_ms": 1000,
+      "expected_unresolved_history_t_ms": [64000, 65000],
+      "expected_zone_changes_per_object": {"bottle_left": [], "bottle_right": [], "unresolved_01": []}
+    }
+  ]
+}

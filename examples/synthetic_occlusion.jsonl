@@ -1,0 +1,7 @@
+{"video":"occlusion_demo","object_id":"bottle_01","tracklet_id":"track_before","t_ms":0,"label":"blue bottle","zone":"desk"}
+{"video":"occlusion_demo","object_id":"bottle_01","tracklet_id":"track_before","t_ms":1000,"label":"blue bottle","zone":"desk"}
+{"video":"occlusion_demo","object_id":"bottle_01","tracklet_id":"track_before","t_ms":2000,"label":"blue bottle","zone":"unknown"}
+{"video":"occlusion_demo","object_id":"bottle_01","tracklet_id":"track_after_short","t_ms":3000,"label":"blue bottle","zone":"shelf"}
+{"video":"occlusion_demo","object_id":"bottle_01","tracklet_id":"track_after_short","t_ms":4000,"label":"blue bottle","zone":"shelf"}
+{"video":"occlusion_demo","object_id":"bottle_01","tracklet_id":"track_after_long","t_ms":64000,"label":"blue bottle","zone":"drawer"}
+{"video":"occlusion_demo","object_id":"bottle_01","tracklet_id":"track_after_long","t_ms":65000,"label":"blue bottle","zone":"drawer"}
