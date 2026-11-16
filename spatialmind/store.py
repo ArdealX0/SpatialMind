@@ -4,6 +4,7 @@ import sqlite3
 
 FIELDS = ("video", "object_id", "t_ms", "label", "zone")
 MAX_LINE_BYTES = 16_384
+MAX_INPUT_BYTES = 64 * 1024 * 1024
 
 
 def connect(path):
@@ -58,12 +59,15 @@ def _parse(line):
 
 def ingest(db, stream):
     """Atomically import validated records from a binary JSONL stream."""
-    inserted = unchanged = line_no = 0
+    inserted = unchanged = line_no = total_bytes = 0
     with db:
         while line := stream.readline(MAX_LINE_BYTES + 1):
             line_no += 1
             if len(line) > MAX_LINE_BYTES:
                 raise ValueError(f"line {line_no}: record exceeds size limit")
+            total_bytes += len(line)
+            if total_bytes > MAX_INPUT_BYTES:
+                raise ValueError("input exceeds 67,108,864-byte limit")
             if not line.strip():
                 continue
             try:
