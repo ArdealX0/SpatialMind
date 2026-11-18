@@ -1,0 +1,5 @@
+{"video":"visibility_demo","object_id":"bottle_01","state":"visible","t_ms":1000,"tracklet_id":"track_7"}
+{"video":"visibility_demo","object_id":"bottle_01","state":"missing","t_ms":2000}
+{"video":"visibility_demo","object_id":"bottle_01","state":"missing","t_ms":2500}
+{"video":"visibility_demo","object_id":"bottle_01","state":"visible","t_ms":3000,"tracklet_id":"track_19"}
+{"video":"visibility_demo","object_id":"bottle_01","state":"visible","t_ms":4000,"tracklet_id":"track_19"}
