@@ -20,3 +20,5 @@ For assigning supplied normalized image points to named regions, see [zone confi
 See [30-day roadmap](docs/ROADMAP.md), [observation contract](docs/OBSERVATIONS.md), and [security checklist](SECURITY.md).
 
 For reproducible uncertainty cases, see [synthetic occlusion and look-alike scenarios](docs/SCENARIOS.md).
+
+For the CPU-only validated observation replay boundary, see [adapter usage](docs/ADAPTER.md).
