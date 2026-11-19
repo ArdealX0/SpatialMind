@@ -22,3 +22,5 @@ See [30-day roadmap](docs/ROADMAP.md), [observation contract](docs/OBSERVATIONS.
 For reproducible uncertainty cases, see [synthetic occlusion and look-alike scenarios](docs/SCENARIOS.md).
 
 For the CPU-only validated observation replay boundary, see [adapter usage](docs/ADAPTER.md).
+
+For explicit missing and reobserved signals, see [visibility transitions](docs/VISIBILITY.md).
