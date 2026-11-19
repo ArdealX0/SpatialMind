@@ -21,4 +21,4 @@ See [30-day roadmap](docs/ROADMAP.md), [observation contract](docs/OBSERVATIONS.
 
 For reproducible uncertainty cases, see [synthetic occlusion and look-alike scenarios](docs/SCENARIOS.md).
 
-For converting supplied tracked points into zone-labeled observations, see [track-to-zone usage](docs/TRACK_ZONES.md).
+For the CPU-only validated observation replay boundary, see [adapter usage](docs/ADAPTER.md).
