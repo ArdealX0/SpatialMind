@@ -30,8 +30,10 @@ cannot establish which recording happened later.
 
 Extra fields, missing required fields, duplicate JSON keys and non-object JSON values are
 rejected. A physical line may contain at most 16,384 bytes, including its line
-ending when present. Blank lines within that limit are ignored. The final line
-does not require a newline. Empty input succeeds with zero inserted records.
+ending when present. The complete input may contain at most 67,108,864 bytes,
+including blank lines and line endings. Both limits accept equality. Blank lines
+within those limits are ignored. The final line does not require a newline.
+Empty input succeeds with zero inserted records.
 
 ## Identity and evidence
 
