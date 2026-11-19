@@ -21,4 +21,4 @@ See [30-day roadmap](docs/ROADMAP.md), [observation contract](docs/OBSERVATIONS.
 
 For reproducible uncertainty cases, see [synthetic occlusion and look-alike scenarios](docs/SCENARIOS.md).
 
-For optional local video decoding with source timestamps, see [video reader usage](docs/VIDEO.md).
+For the CPU-only validated observation replay boundary, see [adapter usage](docs/ADAPTER.md).
