@@ -24,3 +24,5 @@ For reproducible uncertainty cases, see [synthetic occlusion and look-alike scen
 For the CPU-only validated observation replay boundary, see [adapter usage](docs/ADAPTER.md).
 
 For explicit missing and reobserved signals, see [visibility transitions](docs/VISIBILITY.md).
+
+For the guarded paired identity evaluation and its explicit `NOT_RUN` fallback, see [paired evaluation preparation](docs/PAIRED_EVALUATION.md).
