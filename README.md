@@ -24,3 +24,5 @@ For reproducible uncertainty cases, see [synthetic occlusion and look-alike scen
 For the CPU-only validated observation replay boundary, see [adapter usage](docs/ADAPTER.md).
 
 For explicit missing and reobserved signals, see [visibility transitions](docs/VISIBILITY.md).
+
+Inspect conservative identity proposals with the [position-and-gap association baseline](docs/ASSOCIATION.md).

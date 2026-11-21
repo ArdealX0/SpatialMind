@@ -1,0 +1,35 @@
+{
+  "provenance": "human-authored synthetic acceptance expectations, not measured identity accuracy",
+  "cases": [
+    {
+      "name": "one nearby recent candidate",
+      "input": {
+        "incoming": {"video":"demo","tracklet_id":"new_track","t_ms":2000,"x":0.25,"y":0.5},
+        "candidates": [{"video":"demo","object_id":"bottle_left","t_ms":1000,"x":0.2,"y":0.5}]
+      },
+      "expected_status": "matched",
+      "expected_object_id": "bottle_left"
+    },
+    {
+      "name": "two plausible look-alikes must abstain",
+      "input": {
+        "incoming": {"video":"demo","tracklet_id":"new_track","t_ms":2000,"x":0.25,"y":0.5},
+        "candidates": [
+          {"video":"demo","object_id":"bottle_right","t_ms":1000,"x":0.3,"y":0.5},
+          {"video":"demo","object_id":"bottle_left","t_ms":1000,"x":0.24,"y":0.5}
+        ]
+      },
+      "expected_status": "ambiguous",
+      "expected_object_id": null
+    },
+    {
+      "name": "minute-old candidate is not a default match",
+      "input": {
+        "incoming": {"video":"demo","tracklet_id":"new_track","t_ms":61000,"x":0.25,"y":0.5},
+        "candidates": [{"video":"demo","object_id":"bottle_left","t_ms":1000,"x":0.25,"y":0.5}]
+      },
+      "expected_status": "unmatched",
+      "expected_object_id": null
+    }
+  ]
+}
