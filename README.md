@@ -25,4 +25,4 @@ For the CPU-only validated observation replay boundary, see [adapter usage](docs
 
 For explicit missing and reobserved signals, see [visibility transitions](docs/VISIBILITY.md).
 
-For the guarded paired identity evaluation and its explicit `NOT_RUN` fallback, see [paired evaluation preparation](docs/PAIRED_EVALUATION.md).
+Inspect conservative identity proposals with the [position-and-gap association baseline](docs/ASSOCIATION.md).
