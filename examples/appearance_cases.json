@@ -1,0 +1,39 @@
+{
+  "provenance": "Human-authored synthetic identity labels, independent of model decisions. Appearance encoder and prediction collection: NOT_RUN.",
+  "cases": [
+    {
+      "case_id": "spatially_plausible_distractor",
+      "candidate_ids": ["bottle_A", "bottle_B"],
+      "expected": {"status": "matched", "object_id": "bottle_A"},
+      "context": {
+        "video": "paired_demo_1",
+        "incoming": {"tracklet_id": "new_track", "t_ms": 2000, "x": 0.5, "y": 0.5},
+        "candidates": [
+          {"object_id": "bottle_A", "t_ms": 1000, "x": 0.7, "y": 0.5},
+          {"object_id": "bottle_B", "t_ms": 1000, "x": 0.49, "y": 0.5}
+        ],
+        "identity_basis": "Scenario author specifies this returning object is bottle_A; bottle_B is a nearby distractor. This identity is not derived from position."
+      }
+    },
+    {
+      "case_id": "true_object_absent",
+      "candidate_ids": ["bottle_B"],
+      "expected": {"status": "unmatched", "object_id": null},
+      "context": {
+        "video": "paired_demo_2",
+        "incoming": {"tracklet_id": "new_track", "t_ms": 2000, "x": 0.5, "y": 0.5},
+        "candidates": [{"object_id": "bottle_B", "t_ms": 1000, "x": 0.49, "y": 0.5}],
+        "identity_basis": "Scenario author specifies a new object C absent from the candidate population; linking it to nearby bottle_B is false."
+      }
+    },
+    {
+      "case_id": "identity_unresolvable",
+      "candidate_ids": ["bottle_A", "bottle_B"],
+      "expected": {"status": "ambiguous", "object_id": null},
+      "context": {
+        "video": "paired_demo_3",
+        "identity_basis": "The supplied scenario does not establish which of two indistinguishable bottles returned; neither identity may be asserted."
+      }
+    }
+  ]
+}
