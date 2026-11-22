@@ -26,3 +26,7 @@ For the CPU-only validated observation replay boundary, see [adapter usage](docs
 For explicit missing and reobserved signals, see [visibility transitions](docs/VISIBILITY.md).
 
 Inspect conservative identity proposals with the [position-and-gap association baseline](docs/ASSOCIATION.md).
+
+For freshness-bounded, image-space LEFT_OF intervals between supplied object positions, see [temporal spatial relations](docs/RELATIONS.md).
+
+Derive freshness-bounded image-space relations with [temporal LEFT_OF intervals](docs/RELATIONS.md).
