@@ -27,4 +27,6 @@ For explicit missing and reobserved signals, see [visibility transitions](docs/V
 
 Inspect conservative identity proposals with the [position-and-gap association baseline](docs/ASSOCIATION.md).
 
-Query past last-observed scene evidence with [historical snapshots](docs/SNAPSHOTS.md).
+For freshness-bounded, image-space LEFT_OF intervals between supplied object positions, see [temporal spatial relations](docs/RELATIONS.md).
+
+Derive freshness-bounded image-space relations with [temporal LEFT_OF intervals](docs/RELATIONS.md).

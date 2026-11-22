@@ -1,0 +1,6 @@
+{"video":"relation_demo","object_id":"bottle","t_ms":1000,"x":0.25,"y":0.4}
+{"video":"relation_demo","object_id":"laptop","t_ms":1000,"x":0.75,"y":0.4}
+{"video":"relation_demo","object_id":"bottle","t_ms":3000,"x":0.3,"y":0.4}
+{"video":"relation_demo","object_id":"bottle","t_ms":7000,"x":0.3,"y":0.4}
+{"video":"relation_demo","object_id":"laptop","t_ms":7000,"x":0.75,"y":0.4}
+{"video":"relation_demo","object_id":"bottle","t_ms":8000}
