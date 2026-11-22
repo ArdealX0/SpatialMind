@@ -8,7 +8,7 @@ from pathlib import Path
 
 from .store import (
     connect, history, ingest, last_seen, validate_event_interval, validate_event_options,
-    zone_changes,
+    zone_changes, snapshot, validate_snapshot_options,
 )
 
 
@@ -35,6 +35,9 @@ def main(argv=None):
                                help="inclusive minimum confirmation time in video milliseconds")
             query.add_argument("--end-ms", type=int,
                                help="inclusive maximum confirmation time in video milliseconds")
+    scene = sub.add_parser("snapshot", help="retrieve last-observed object evidence at a video time")
+    scene.add_argument("--video", required=True, help="source recording ID")
+    scene.add_argument("--at-ms", required=True, type=int, help="inclusive source-video timestamp")
     args = parser.parse_args(argv)
     try:
         event_options = {}
@@ -44,10 +47,14 @@ def main(argv=None):
             event_options = dict(confirm_observations=args.confirm_observations,
                                  max_gap_ms=args.max_gap_ms,
                                  start_ms=args.start_ms, end_ms=args.end_ms)
+        if args.command == "snapshot":
+            validate_snapshot_options(args.video, args.at_ms)
         with closing(connect(args.db)) as db:
             if args.command == "ingest":
                 with args.file.open("rb") as stream:
                     result = ingest(db, stream)
+            elif args.command == "snapshot":
+                result = snapshot(db, args.video, args.at_ms)
             else:
                 lookup = {
                     "history": history,

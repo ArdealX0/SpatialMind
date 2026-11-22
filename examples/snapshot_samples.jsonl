@@ -1,0 +1,5 @@
+{"video":"snapshot_demo","object_id":"bottle","t_ms":3000,"label":"blue bottle","zone":"shelf","tracklet_id":"track_after"}
+{"video":"snapshot_demo","object_id":"mug","t_ms":4000,"label":"red mug","zone":"shelf"}
+{"video":"snapshot_demo","object_id":"bottle","t_ms":1000,"label":"blue bottle","zone":"desk","tracklet_id":"track_before"}
+{"video":"snapshot_demo","object_id":"mug","t_ms":2000,"label":"red mug","zone":"unknown"}
+{"video":"another_recording","object_id":"bottle","t_ms":500,"label":"other bottle","zone":"drawer"}

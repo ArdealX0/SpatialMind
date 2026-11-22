@@ -215,3 +215,42 @@ def zone_changes(db, object_id, video=None, *, confirm_observations=2, max_gap_m
         if (start_ms is None or event["confirmed_t_ms"] >= start_ms)
         and (end_ms is None or event["confirmed_t_ms"] <= end_ms)
     ]
+
+
+
+MAX_SNAPSHOT_OBJECTS = 10_000
+
+
+def validate_snapshot_options(video, at_ms):
+    if (not isinstance(video, str) or not video.strip()
+            or not video.isprintable() or len(video) > 512):
+        raise ValueError("video must be nonempty printable text of at most 512 characters")
+    if type(at_ms) is not int or not 0 <= at_ms < 2**63:
+        raise ValueError("at_ms must be a nonnegative 64-bit integer")
+
+
+def snapshot(db, video, at_ms):
+    """Return last-observed evidence for each object as of a recording timestamp."""
+    validate_snapshot_options(video, at_ms)
+    rows = db.execute("""
+        SELECT o.video, o.object_id, o.t_ms, o.label, o.zone, o.tracklet_id
+        FROM observations AS o
+        JOIN (
+            SELECT object_id, MAX(t_ms) AS last_t
+            FROM observations
+            WHERE video=? AND t_ms<=?
+            GROUP BY object_id
+        ) AS latest ON o.object_id=latest.object_id AND o.t_ms=latest.last_t
+        WHERE o.video=?
+        ORDER BY o.object_id
+        LIMIT ?
+    """, (video, at_ms, video, MAX_SNAPSHOT_OBJECTS + 1)).fetchall()
+    if len(rows) > MAX_SNAPSHOT_OBJECTS:
+        raise ValueError("snapshot exceeds 10000 objects; no partial snapshot returned")
+    return {
+        "video": video, "at_ms": at_ms, "semantics": "last_observed",
+        "objects": [
+            {"age_ms": at_ms - row["t_ms"], "observation": _observation_result(row)}
+            for row in rows
+        ],
+    }

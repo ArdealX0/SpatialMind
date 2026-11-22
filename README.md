@@ -26,3 +26,5 @@ For the CPU-only validated observation replay boundary, see [adapter usage](docs
 For explicit missing and reobserved signals, see [visibility transitions](docs/VISIBILITY.md).
 
 Inspect conservative identity proposals with the [position-and-gap association baseline](docs/ASSOCIATION.md).
+
+Query past last-observed scene evidence with [historical snapshots](docs/SNAPSHOTS.md).
