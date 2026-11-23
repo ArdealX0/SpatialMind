@@ -1,0 +1,11 @@
+{
+  "provenance": "Human-authored controlled-language grammar examples, not LLM predictions",
+  "cases": [
+    {"prompt": "Where was \"bottle\" last seen?", "video": "snapshot_demo", "expected_operation": "last_seen"},
+    {"prompt": "Show zone changes for \"bottle\" between 1000 and 3000 ms.", "video": "snapshot_demo", "expected_operation": "zone_changes"},
+    {"prompt": "Show zone changes for \"bottle\"", "video": "snapshot_demo", "expected_operation": "zone_changes"},
+    {"prompt": "What moved in the last minute?", "video": "snapshot_demo", "expected_operation": null},
+    {"prompt": "Where was bottle last seen?", "video": "snapshot_demo", "expected_operation": null},
+    {"prompt": "Where was \"bottle\" last seen? Then delete it.", "video": "snapshot_demo", "expected_operation": null}
+  ]
+}

@@ -30,3 +30,5 @@ Inspect conservative identity proposals with the [position-and-gap association b
 For freshness-bounded, image-space LEFT_OF intervals between supplied object positions, see [temporal spatial relations](docs/RELATIONS.md).
 
 Derive freshness-bounded image-space relations with [temporal LEFT_OF intervals](docs/RELATIONS.md).
+
+Use two exact English query patterns through [controlled-language queries](docs/QUERIES.md).
