@@ -34,3 +34,4 @@ Derive freshness-bounded image-space relations with [temporal LEFT_OF intervals]
 Use two exact English query patterns through [controlled-language queries](docs/QUERIES.md).
 
 Validate a frozen session-split fixture with the [authored synthetic evaluation set](docs/EVALUATION_SET.md).
+Serve controlled-language queries locally through the [read-only HTTP API](docs/API.md).
