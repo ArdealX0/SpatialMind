@@ -33,4 +33,4 @@ Derive freshness-bounded image-space relations with [temporal LEFT_OF intervals]
 
 Use two exact English query patterns through [controlled-language queries](docs/QUERIES.md).
 
-View last-observed source footage with the [standalone local evidence viewer](docs/EVIDENCE.md).
+Serve controlled-language queries locally through the [read-only HTTP API](docs/API.md).
