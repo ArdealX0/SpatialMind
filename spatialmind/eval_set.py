@@ -150,7 +150,7 @@ def validate_manifest(manifest):
     return counts
 
 
-def load_manifest(path):
+def read_manifest(path):
     """Read at most 1 MiB; digest identifies exact frozen manifest bytes."""
     with Path(path).open('rb') as stream:
         raw = stream.read(MAX_BYTES + 1)
@@ -166,8 +166,13 @@ def load_manifest(path):
     manifest = json.loads(raw.decode('utf-8'), object_pairs_hook=_unique_keys,
                           parse_constant=reject_constant, parse_float=finite_float)
     counts = validate_manifest(manifest)
-    return {'sha256': hashlib.sha256(raw).hexdigest(), 'version': manifest['version'],
-            'provenance': manifest['provenance'], 'splits': counts}
+    return manifest, {'sha256': hashlib.sha256(raw).hexdigest(), 'version': manifest['version'],
+                      'provenance': manifest['provenance'], 'splits': counts}
+
+
+def load_manifest(path):
+    """Return validation metadata, preserving the original public API."""
+    return read_manifest(path)[1]
 
 
 def main(argv=None):
