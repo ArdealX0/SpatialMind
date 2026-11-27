@@ -1,0 +1,297 @@
+{
+  "version": 1,
+  "provenance": {
+    "kind": "synthetic",
+    "labels": "authored_not_inference"
+  },
+  "sessions": [
+    {
+      "session_id": "session_1",
+      "split": "dev",
+      "video": "synthetic_session_1",
+      "objects": [
+        {
+          "object_id": "bottle_1",
+          "label": "blue bottle"
+        }
+      ],
+      "observations": [
+        {
+          "video": "synthetic_session_1",
+          "object_id": "bottle_1",
+          "t_ms": 0,
+          "label": "blue bottle",
+          "zone": "left"
+        },
+        {
+          "video": "synthetic_session_1",
+          "object_id": "bottle_1",
+          "t_ms": 1000,
+          "label": "blue bottle",
+          "zone": "left"
+        },
+        {
+          "video": "synthetic_session_1",
+          "object_id": "bottle_1",
+          "t_ms": 2000,
+          "label": "blue bottle",
+          "zone": "right"
+        },
+        {
+          "video": "synthetic_session_1",
+          "object_id": "bottle_1",
+          "t_ms": 3000,
+          "label": "blue bottle",
+          "zone": "right"
+        }
+      ],
+      "expected_events": [
+        {
+          "type": "ZONE_CHANGED",
+          "video": "synthetic_session_1",
+          "object_id": "bottle_1",
+          "from_zone": "left",
+          "to_zone": "right",
+          "before_t_ms": 1000,
+          "after_t_ms": 2000,
+          "confirmed_t_ms": 3000
+        }
+      ],
+      "query_cases": [
+        {
+          "case_id": "s1_last",
+          "prompt": "Where was \"bottle_1\" last seen?",
+          "expected_status": "answered",
+          "expected_evidence": {
+            "video": "synthetic_session_1",
+            "object_id": "bottle_1",
+            "t_ms": 3000,
+            "label": "blue bottle",
+            "zone": "right"
+          }
+        },
+        {
+          "case_id": "s1_changes",
+          "prompt": "Show zone changes for \"bottle_1\"",
+          "expected_status": "answered",
+          "expected_evidence": [
+            {
+              "type": "ZONE_CHANGED",
+              "video": "synthetic_session_1",
+              "object_id": "bottle_1",
+              "from_zone": "left",
+              "to_zone": "right",
+              "before_t_ms": 1000,
+              "after_t_ms": 2000,
+              "confirmed_t_ms": 3000
+            }
+          ]
+        },
+        {
+          "case_id": "s1_negative",
+          "prompt": "Show zone changes for \"bottle_1\" between 0 and 1000 ms",
+          "expected_status": "answered",
+          "expected_evidence": []
+        },
+        {
+          "case_id": "s1_missing",
+          "prompt": "Where was \"absent\" last seen?",
+          "expected_status": "evidence_missing",
+          "expected_evidence": null
+        },
+        {
+          "case_id": "s1_unsupported",
+          "prompt": "Why did the bottle move?",
+          "expected_status": "unsupported",
+          "expected_evidence": null
+        }
+      ]
+    },
+    {
+      "session_id": "session_2",
+      "split": "dev",
+      "video": "synthetic_session_2",
+      "objects": [
+        {
+          "object_id": "bottle_2",
+          "label": "blue bottle"
+        }
+      ],
+      "observations": [
+        {
+          "video": "synthetic_session_2",
+          "object_id": "bottle_2",
+          "t_ms": 0,
+          "label": "blue bottle",
+          "zone": "left"
+        },
+        {
+          "video": "synthetic_session_2",
+          "object_id": "bottle_2",
+          "t_ms": 1000,
+          "label": "blue bottle",
+          "zone": "right"
+        },
+        {
+          "video": "synthetic_session_2",
+          "object_id": "bottle_2",
+          "t_ms": 2000,
+          "label": "blue bottle",
+          "zone": "left"
+        },
+        {
+          "video": "synthetic_session_2",
+          "object_id": "bottle_2",
+          "t_ms": 3000,
+          "label": "blue bottle",
+          "zone": "unknown"
+        },
+        {
+          "video": "synthetic_session_2",
+          "object_id": "bottle_2",
+          "t_ms": 9000,
+          "label": "blue bottle",
+          "zone": "right"
+        }
+      ],
+      "expected_events": [],
+      "query_cases": [
+        {
+          "case_id": "s2_last",
+          "prompt": "Where was \"bottle_2\" last seen?",
+          "expected_status": "answered",
+          "expected_evidence": {
+            "video": "synthetic_session_2",
+            "object_id": "bottle_2",
+            "t_ms": 9000,
+            "label": "blue bottle",
+            "zone": "right"
+          }
+        },
+        {
+          "case_id": "s2_changes",
+          "prompt": "Show zone changes for \"bottle_2\"",
+          "expected_status": "answered",
+          "expected_evidence": []
+        },
+        {
+          "case_id": "s2_negative",
+          "prompt": "Show zone changes for \"bottle_2\" between 0 and 1000 ms",
+          "expected_status": "answered",
+          "expected_evidence": []
+        },
+        {
+          "case_id": "s2_missing",
+          "prompt": "Where was \"absent\" last seen?",
+          "expected_status": "evidence_missing",
+          "expected_evidence": null
+        },
+        {
+          "case_id": "s2_unsupported",
+          "prompt": "Why did the bottle move?",
+          "expected_status": "unsupported",
+          "expected_evidence": null
+        }
+      ]
+    },
+    {
+      "session_id": "session_3",
+      "split": "test",
+      "video": "synthetic_session_3",
+      "objects": [
+        {
+          "object_id": "bottle_1",
+          "label": "red bottle"
+        }
+      ],
+      "observations": [
+        {
+          "video": "synthetic_session_3",
+          "object_id": "bottle_1",
+          "t_ms": 100,
+          "label": "red bottle",
+          "zone": "desk",
+          "tracklet_id": "heldout_track"
+        },
+        {
+          "video": "synthetic_session_3",
+          "object_id": "bottle_1",
+          "t_ms": 400,
+          "label": "red bottle",
+          "zone": "shelf",
+          "tracklet_id": "heldout_track"
+        },
+        {
+          "video": "synthetic_session_3",
+          "object_id": "bottle_1",
+          "t_ms": 900,
+          "label": "red bottle",
+          "zone": "shelf",
+          "tracklet_id": "heldout_track"
+        }
+      ],
+      "expected_events": [
+        {
+          "type": "ZONE_CHANGED",
+          "video": "synthetic_session_3",
+          "object_id": "bottle_1",
+          "from_zone": "desk",
+          "to_zone": "shelf",
+          "before_t_ms": 100,
+          "after_t_ms": 400,
+          "confirmed_t_ms": 900
+        }
+      ],
+      "query_cases": [
+        {
+          "case_id": "s3_last",
+          "prompt": "Where was \"bottle_1\" last seen?",
+          "expected_status": "answered",
+          "expected_evidence": {
+            "video": "synthetic_session_3",
+            "object_id": "bottle_1",
+            "t_ms": 900,
+            "label": "red bottle",
+            "zone": "shelf",
+            "tracklet_id": "heldout_track"
+          }
+        },
+        {
+          "case_id": "s3_changes",
+          "prompt": "Show zone changes for \"bottle_1\"",
+          "expected_status": "answered",
+          "expected_evidence": [
+            {
+              "type": "ZONE_CHANGED",
+              "video": "synthetic_session_3",
+              "object_id": "bottle_1",
+              "from_zone": "desk",
+              "to_zone": "shelf",
+              "before_t_ms": 100,
+              "after_t_ms": 400,
+              "confirmed_t_ms": 900
+            }
+          ]
+        },
+        {
+          "case_id": "s3_negative",
+          "prompt": "Show zone changes for \"bottle_1\" between 0 and 400 ms",
+          "expected_status": "answered",
+          "expected_evidence": []
+        },
+        {
+          "case_id": "s3_missing",
+          "prompt": "Where was \"absent\" last seen?",
+          "expected_status": "evidence_missing",
+          "expected_evidence": null
+        },
+        {
+          "case_id": "s3_unsupported",
+          "prompt": "Why did the bottle move?",
+          "expected_status": "unsupported",
+          "expected_evidence": null
+        }
+      ]
+    }
+  ]
+}
